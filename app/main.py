@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.openapi.utils import get_openapi
 import pandas as pd
 
-from app.helpers.helper import *
+# from app.helpers.helper import *
 from app.helpers.wxwd_function import *
 
 app = FastAPI(
