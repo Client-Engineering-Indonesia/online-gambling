@@ -6,21 +6,21 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_watson_machine_learning.foundation_models import Model
 from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams
 import os, re, ast
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 class WatsonQA:
 
     def __init__(self):
-        dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-        load_dotenv(dotenv_path)
+        # dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+        # load_dotenv(dotenv_path)
 
-        self.WX_API_KEY = os.getenv('WX_API_KEY')
-        self.WX_PROJECT_ID = os.getenv('WX_PROJECT_ID')
-        self.WX_URL = os.getenv('WX_URL')
+        # self.WX_API_KEY = os.getenv('WX_API_KEY')
+        # self.WX_PROJECT_ID = os.getenv('WX_PROJECT_ID')
+        # self.WX_URL = os.getenv('WX_URL')
 
-        # self.WX_API_KEY = os.environ['WX_API_KEY']
-        # self.WX_PROJECT_ID = os.environ['WX_PROJECT_ID']
-        # self.WX_URL = os.environ['WX_URL']
+        self.WX_API_KEY = os.environ['WX_API_KEY']
+        self.WX_PROJECT_ID = os.environ['WX_PROJECT_ID']
+        self.WX_URL = os.environ['WX_URL']
 
         # Initialize Watson XAI
         self.api_key_wx = self.WX_API_KEY
