@@ -66,7 +66,7 @@ class WatsonQA:
 
         return output
 
-    def gambling_category(self, context):
+    async def gambling_category(self, context):
         # json_format = {
         #     "deskripsi": "rangkum informasi yang di temukan dalam 3 kalimat",
         #     "url": "sebutkan semua url yang ditemukan",
