@@ -85,8 +85,8 @@ class WatsonQA:
         output_stage = self.send_to_watsonxai(prompts=[prompt_stage], stop_sequences=[])
         output_stage = {"output": str(output_stage.strip()).replace('\n\n', ' ').replace('*', '<li>')}
         output_stage["output"] = re.sub(' +', ' ', output_stage["output"])
-        # output_stage["output"] = ast.literal_eval(output_stage['output'])
-        # print(output_stage)
+        output_stage["output"] = ast.literal_eval(output_stage['output'])
+        
         return output_stage
     
 

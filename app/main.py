@@ -19,7 +19,7 @@ app = FastAPI(
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World with BNI"}
+    return {"message": "Hello World with web identification..."}
 
 @app.get("/ping")
 async def ping():
@@ -36,7 +36,6 @@ async def content_gambling_category(request: Request):
 
     try:
         user_input = await request.json()
-        #question = user_input['user_question']
         context = user_input['content']
         watson_context_category = WatsonQA()
         answer = await watson_context_category.gambling_category(context)
