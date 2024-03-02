@@ -44,6 +44,23 @@ async def content_gambling_category(request: Request):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
+@app.post("/content_search")
+async def content_search(request: Request):
+
+    try:
+        user_input = await request.json()
+        query = user_input['query']
+        search_key = user_input['search_key']
+        search_engine = user_input['search_engine']
+        sort = user_input['sort']
+        limit_results = user_input['limit_results']
+        watson_context_category = WatsonQA()
+        answer = await watson_context_category.advanced_search(query,search_key,search_engine,sort,limit_results)
+        return answer
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema

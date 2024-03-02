@@ -6,6 +6,7 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_watson_machine_learning.foundation_models import Model
 from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams
 import os, re, ast
+import json, requests
 # from dotenv import load_dotenv
 
 class WatsonQA:
@@ -88,8 +89,53 @@ class WatsonQA:
         output_stage["output"] = ast.literal_eval(output_stage['output'])
         
         return output_stage
-    
 
-        # prompt_stage = f"""Kamu adalah asisten yang membantu, menghormati, dan jujur. Selalu jawab sebisa mungkin, sambil tetap aman. Jawaban Anda tidak boleh mengandung konten yang berbahaya, tidak etis, rasial, seksis, beracun, berbahaya, atau ilegal. Pastikan bahwa respons Anda tidak memihak dan bersifat positif.
-        # context: {context}
-        # Tolong rangkum context dan informasi yang dapat ditemukan pada konteks di atas dalam 1 kalimat. Tampilkan url link dalam bentuk list apabila ditemukan dalam context. Jawaban harus mengikuti format json {json_format}"""
+    async def advanced_search(self, query, search_key, search_engine, sort, limit_results):
+
+        url = "https://www.googleapis.com/customsearch/v1"
+
+        params = {
+            "q": query,
+            "key": search_key,
+            "cx": search_engine,
+            # "dateRestrict": "d365",  # Search for the past 7 days
+            "sort": "date" if sort == "date" else None,  # default is relevance
+            "start": 1,  # Incrementing start value
+            "num": 10,  # Number of results per page
+        }
+            
+        start_value = 1
+        collected_data = []
+
+        while True:
+            response = requests.get(url, params=params)
+            response.raise_for_status() 
+            search_results = response.json()
+
+            if 'items' not in search_results:
+                break
+            
+            for item in search_results['items']:
+                title = item['title']
+                link = item['link']
+                snippet = item['snippet']
+                # image = None
+                # if 'pagemap' in item and 'cse_image' in item['pagemap']:
+                #     image = item['pagemap']['cse_image'][0]['src']  # Assuming there is only one image
+
+                item_data = {
+                    'title': title,
+                    'link': link,
+                    'snippet': snippet,
+                    # 'image': image
+                }
+                collected_data.append(item_data)
+            
+            start_value += 10
+
+            if start_value >= limit_results:
+                break
+
+        json_data = json.dumps(collected_data, indent=0).replace('\n', '')
+
+        return json_data
