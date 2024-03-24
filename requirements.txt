@@ -7,3 +7,6 @@ ibm-cos-sdk
 ibm_watson==7.0.1
 watson-developer-cloud
 ibm-watson-machine-learning==1.0.327
+serpapi==0.1.5
+google-play-scraper==1.2.6
+python-dotenv==1.0.1
