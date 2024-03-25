@@ -159,3 +159,5 @@ dmypy.json
 __pycache__/
 app/__pycache__/
 app/helpers/__pycache__/
+
+*.txt

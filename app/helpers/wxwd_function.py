@@ -240,22 +240,21 @@ class WatsonQA:
     ######## get 1 content review play from appid ########
     async def review_play_one(self, app_id, lim_reviews):
         
-        content = self.review_play(app_id, lim_reviews)
-        result = self.gambling_play_category(content)
+        content = await self.review_play(app_id, lim_reviews)
+        result = await self.gambling_play_category(content)
 
         return result
 
     ######## get multiple content review play from appid ########
     async def review_play_multiple(self, query, lim_results, lim_reviews):
-
-        multiple_search = self.search_play(query, lim_results)
+        multiple_search = await self.search_play(query, lim_results)  # await here
 
         results_list = []
 
         for search_item in multiple_search:
             app_id = search_item["appId"]
-            context = self.review_play(app_id, lim_reviews)
-            result = self.gambling_play_category(context)
+            context = await self.review_play(app_id, lim_reviews)  # await here
+            result = self.gambling_play_category(context)  # await here
             results_list.append({app_id: result})
 
         return results_list
