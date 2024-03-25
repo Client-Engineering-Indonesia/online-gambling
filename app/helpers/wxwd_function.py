@@ -6,21 +6,22 @@ from google_play_scraper import search, Sort, reviews_all
 import serpapi
 import os, re, ast
 import json, requests
-from dotenv import load_dotenv
+import pandas as pd
+# from dotenv import load_dotenv
 
 class WatsonQA:
 
     def __init__(self):
-        dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-        load_dotenv(dotenv_path)
+        # dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+        # load_dotenv(dotenv_path)
 
-        self.WX_API_KEY = os.getenv('WX_API_KEY')
-        self.WX_PROJECT_ID = os.getenv('WX_PROJECT_ID')
-        self.WX_URL = os.getenv('WX_URL')
+        # self.WX_API_KEY = os.getenv('WX_API_KEY')
+        # self.WX_PROJECT_ID = os.getenv('WX_PROJECT_ID')
+        # self.WX_URL = os.getenv('WX_URL')
 
-        # self.WX_API_KEY = os.environ['WX_API_KEY']
-        # self.WX_PROJECT_ID = os.environ['WX_PROJECT_ID']
-        # self.WX_URL = os.environ['WX_URL']
+        self.WX_API_KEY = os.environ['WX_API_KEY']
+        self.WX_PROJECT_ID = os.environ['WX_PROJECT_ID']
+        self.WX_URL = os.environ['WX_URL']
 
         # Initialize Watson XAI
         self.api_key_wx = self.WX_API_KEY
@@ -67,7 +68,7 @@ class WatsonQA:
         return output
 
     ######## category content webpage ########
-    def gambling_category(self, context):
+    async def gambling_category(self, context):
         # json_format = {
         #     "deskripsi": "rangkum informasi yang di temukan dalam 3 kalimat",
         #     "url": "sebutkan semua url yang ditemukan",
@@ -91,7 +92,7 @@ class WatsonQA:
         return output_stage
 
     ######## search engine search ########
-    def advanced_search(self, query, search_key, search_engine, sort, limit_results):
+    async def advanced_search(self, query, search_key, search_engine, sort, limit_results):
 
         url = "https://www.googleapis.com/customsearch/v1"
 
@@ -142,7 +143,7 @@ class WatsonQA:
         return json_data
     
     ######## play appid search ########
-    def search_play(self, query, limit_results):
+    async def search_play(self, query, lim_results):
         """
         Get details of apps from a Google Play Store search query.
 
@@ -158,7 +159,7 @@ class WatsonQA:
         results = search(query=query, lang='id', country='id')
 
         app_details_list = []
-        for result in results[:limit_results]:
+        for result in results[:lim_results]:
             app_details = {
                 "appId": result["appId"],
                 "title": result["title"],
@@ -170,7 +171,7 @@ class WatsonQA:
         return app_details_list
 
     ######## get review from play appid ########
-    def review_play(self, app_id, lim_reviews):
+    async def review_play(self, app_id, lim_reviews):
 
         scrapreview = reviews_all(
             app_id,
@@ -208,11 +209,26 @@ class WatsonQA:
     def gambling_play_category(self, context):
 
         format = '{ "description": <deskripsi_game>, "sentiment": "<sentimen_review>", "indication": "<indikasi_apabila_ada_kata_judi>" }'
-        
-        prompt_stage = f"""Anda adalah asisten yang membantu, menghormati, dan jujur. Selalu jawab sebisa mungkin, sambil tetap aman. Jawaban Anda tidak boleh mengandung konten yang berbahaya, tidak etis, rasial, seksis, beracun, berbahaya, atau ilegal. Pastikan bahwa respons Anda tidak memihak dan bersifat positif.
-        review: {context}
-        Tolong deskripsikan konten review dari game yang ditemukan, bagaimana sentimen dari konten review tersebut, serta jelaskan apakah ada indikasi dari review tersebut apakah ada kata-kata yang menandakan adanya unsur perjudian dalam permainan dengan masing-masing sebanyak 2 kalimat. Buat penjelasan ke dalam Bahasa Indonesia dan formatkan sebagai berikut: {format}.
 
+        # template = "<[INST] «SYS»\n"\
+        # "while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content.\n"\
+        # "Please ensure that your responses are socially unbiased and positive in nature.\n"\
+        # "If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n"\
+        # "If you don't know the answer to a question, please don't share false information.\n"\
+        # "«/SYS»\n"\
+        # "You are an HR Consultant that need to review an Organizational Structure's Job description from several departments. In the same division, you will have several task.\n"\
+        # "For this process I want you to do a comprehensive understanding from this Job Description!\n"\
+        # f"{input_data}"\
+        # "Here are your task:\n"\
+        # "1. List down all redundant job description from one department to another and make sure you write it very comprehensive!\n"\
+        # "[/INST]\n"\
+        # "Write the redundant job description per department n"\
+        # "Output:"
+
+        prompt_stage = f"""<[INST] «SYS» Anda adalah asisten yang membantu, menghormati, dan jujur. Selalu jawab sebisa mungkin, sambil tetap aman. Jawaban Anda tidak boleh mengandung konten yang berbahaya, tidak etis, rasial, seksis, beracun, berbahaya, atau ilegal. Pastikan bahwa respons Anda tidak memihak dan bersifat positif. «SYS»
+        review: {context}
+        Tolong deskripsikan konten review dari game yang ditemukan, bagaimana sentimen dari konten review tersebut, dan jelaskan apakah ada indikasi dari review tersebut apakah ada kata-kata yang menandakan adanya unsur perjudian dalam permainan.
+        [/INST] Buat penjelasan ke dalam Bahasa Indonesia dan formatkan sebagai berikut: {format}
         Answer:"""
         output_stage = self.send_to_watsonxai(prompts=[prompt_stage], stop_sequences=[])
         output_stage = {"output": str(output_stage.strip()).replace('\n\n', ' ').replace('*', '<li>')}
@@ -222,7 +238,7 @@ class WatsonQA:
         return output_stage
     
     ######## get 1 content review play from appid ########
-    def review_play_one(self, app_id, lim_reviews):
+    async def review_play_one(self, app_id, lim_reviews):
         
         content = self.review_play(app_id, lim_reviews)
         result = self.gambling_play_category(content)
@@ -230,9 +246,9 @@ class WatsonQA:
         return result
 
     ######## get multiple content review play from appid ########
-    def review_play_multiple(self, query, limit_results, lim_reviews):
+    async def review_play_multiple(self, query, lim_results, lim_reviews):
 
-        multiple_search = self.search_play(query, limit_results)
+        multiple_search = self.search_play(query, lim_results)
 
         results_list = []
 
@@ -245,7 +261,7 @@ class WatsonQA:
         return results_list
     
     ######## search reverse image ########
-    def reverse_image_search(self, image_url, serpapi_key, num_pages):
+    async def reverse_image_search(self, image_url, search_key, num_pages):
         """
         Performs iterative reverse image search, retrieving results from potentially multiple pages.
 
@@ -267,7 +283,7 @@ class WatsonQA:
                 "lang": "id",
                 "country":'id',
                 "image_url": image_url,
-                "api_key": serpapi_key,
+                "api_key": search_key,
                 "start": (page_num - 1) * 10,  # Adjust based on search engine's page size
                 "output": "json"
             }

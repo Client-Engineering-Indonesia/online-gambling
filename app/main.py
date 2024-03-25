@@ -37,6 +37,7 @@ async def content_gambling_category(request: Request):
     try:
         user_input = await request.json()
         context = user_input['content']
+
         watson_context_category = WatsonQA()
         answer = await watson_context_category.gambling_category(context)
         return answer
@@ -54,8 +55,86 @@ async def content_search(request: Request):
         search_engine = user_input['search_engine']
         sort = user_input['sort']
         limit_results = user_input['limit_results']
+        
         watson_context_category = WatsonQA()
         answer = await watson_context_category.advanced_search(query,search_key,search_engine,sort,limit_results)
+        return answer
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/get_detailed_playid")
+async def get_detailed_playid(request: Request):
+
+    try:
+        user_input = await request.json()
+        query = user_input['query']
+        lim_results = user_input['lim_results']
+
+        watson_context_category = WatsonQA()
+        answer = await watson_context_category.search_play(query, lim_results)
+        return answer
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/get_review_context")
+async def get_review_context(request: Request):
+
+    try:
+        user_input = await request.json()
+        app_id = user_input['app_id']
+        lim_reviews = user_input['lim_reviews']
+
+        watson_context_category = WatsonQA()
+        answer = await watson_context_category.review_play(app_id,lim_reviews)
+        return answer
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/get_review")
+async def get_review(request: Request):
+
+    try:
+        user_input = await request.json()
+        app_id = user_input['app_id']
+        lim_reviews = user_input['lim_reviews']
+
+        watson_context_category = WatsonQA()
+        answer = await watson_context_category.review_play_one(app_id,lim_reviews)
+        return answer
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@app.post("/get_review_multiple")
+async def get_review_multiple(request: Request):
+
+    try:
+        user_input = await request.json()
+        query = user_input['query']
+        lim_results = user_input['lim_results']
+        lim_reviews = user_input['lim_reviews']
+
+        watson_context_category = WatsonQA()
+        answer = await watson_context_category.review_play_multiple(query, lim_results, lim_reviews)
+        return answer
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/reverse_image_search")
+async def image_search(request: Request):
+
+    try:
+        user_input = await request.json()
+        image_query = user_input['image_query']
+        search_key = user_input['search_key']
+        num_pages = user_input['num_pages']
+
+        watson_context_category = WatsonQA()
+        answer = await watson_context_category.reverse_image_search(image_query,search_key,num_pages)
         return answer
     
     except Exception as e:
