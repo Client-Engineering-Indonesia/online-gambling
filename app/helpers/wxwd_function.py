@@ -69,13 +69,6 @@ class WatsonQA:
 
     ######## category content webpage ########
     async def gambling_category(self, context):
-        # json_format = {
-        #     "deskripsi": "rangkum informasi yang di temukan dalam 3 kalimat",
-        #     "url": "sebutkan semua url yang ditemukan",
-        #     "sentimen": "pandangan dari informasi yang ditemukan",
-        # }
-
-        # format = '{ "online_gambling_category": <nilai_persentase>, "value_negative_sentiment": <nilai_persentase>, "value_neutral_sentiment": <nilai_persentase>, "value_positive_sentiment": <nilai_persentase>, "penjelasan": "<penjelasan_dalam_Bahasa_Indonesia>", "url": "<url_yang_ditemukan>" }'
 
         format = '{ "online_gambling_category": <nilai_persentase>, "explanation": "<penjelasan_dalam_Bahasa_Indonesia>", "url": "<semua_url_yang_ditemukan>" }'
         
@@ -203,54 +196,40 @@ class WatsonQA:
         content_list = data["content"].to_list()
         content = content_list[:lim_reviews]
 
-        return content
+        return content    
     
     ######## category review play from appid ########
     def gambling_play_category(self, context):
 
         format = '{ "description": <deskripsi_game>, "sentiment": "<sentimen_review>", "indication": "<indikasi_apabila_ada_kata_judi>" }'
 
-        # template = "<[INST] «SYS»\n"\
-        # "while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content.\n"\
-        # "Please ensure that your responses are socially unbiased and positive in nature.\n"\
-        # "If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n"\
-        # "If you don't know the answer to a question, please don't share false information.\n"\
-        # "«/SYS»\n"\
-        # "You are an HR Consultant that need to review an Organizational Structure's Job description from several departments. In the same division, you will have several task.\n"\
-        # "For this process I want you to do a comprehensive understanding from this Job Description!\n"\
-        # f"{input_data}"\
-        # "Here are your task:\n"\
-        # "1. List down all redundant job description from one department to another and make sure you write it very comprehensive!\n"\
-        # "[/INST]\n"\
-        # "Write the redundant job description per department n"\
-        # "Output:"
-
         prompt_stage = f"""<[INST] «SYS» Anda adalah asisten yang membantu, menghormati, dan jujur. Selalu jawab sebisa mungkin, sambil tetap aman. Jawaban Anda tidak boleh mengandung konten yang berbahaya, tidak etis, rasial, seksis, beracun, berbahaya, atau ilegal. Pastikan bahwa respons Anda tidak memihak dan bersifat positif. «SYS»
         review: {context}
         Tolong deskripsikan konten review dari game yang ditemukan, bagaimana sentimen dari konten review tersebut, dan jelaskan apakah ada indikasi dari review tersebut apakah ada kata-kata yang menandakan adanya unsur perjudian dalam permainan.
-        [/INST] Buat penjelasan ke dalam Bahasa Indonesia dan formatkan sebagai berikut: {format}
+        [/INST] Buat penjelasan dengan maksimum sebanyak 3 kalimat ke dalam Bahasa Indonesia dan formatkan sebagai berikut: {format}.
         Answer:"""
         output_stage = self.send_to_watsonxai(prompts=[prompt_stage], stop_sequences=[])
         output_stage = {"output": str(output_stage.strip()).replace('\n\n', ' ').replace('*', '<li>')}
-        output_stage["output"] = re.sub(' +', ' ', output_stage["output"])
-        # output_stage["output"] = ast.literal_eval(output_stage['output'])
-        
-        return output_stage
+        json_str = re.sub(' +', ' ', output_stage["output"])
+        json_dump = json.dumps(json_str).replace('\\n', '') #remove newline characters
+        json_structure = json.loads(json_dump) #convert back to dictionary
+
+        return json_structure
     
     ######## get 1 content review play from appid ########
     async def review_play_one(self, app_id, lim_reviews):
         
         content = await self.review_play(app_id, lim_reviews)
-        result = await self.gambling_play_category(content)
+        result = self.gambling_play_category(content)
 
         return result
 
-    ######## get multiple content review play from appid ########
+    ####### get multiple content review play from appid ########
     async def review_play_multiple(self, query, lim_results, lim_reviews):
+
         multiple_search = await self.search_play(query, lim_results)  # await here
 
         results_list = []
-
         for search_item in multiple_search:
             app_id = search_item["appId"]
             context = await self.review_play(app_id, lim_reviews)  # await here
