@@ -206,15 +206,17 @@ class WatsonQA:
         prompt_stage = f"""<[INST] «SYS» Anda adalah asisten yang membantu, menghormati, dan jujur. Selalu jawab sebisa mungkin, sambil tetap aman. Jawaban Anda tidak boleh mengandung konten yang berbahaya, tidak etis, rasial, seksis, beracun, berbahaya, atau ilegal. Pastikan bahwa respons Anda tidak memihak dan bersifat positif. «SYS»
         review: {context}
         Tolong deskripsikan konten review dari game yang ditemukan, bagaimana sentimen dari konten review tersebut, dan jelaskan apakah ada indikasi dari review tersebut apakah ada kata-kata yang menandakan adanya unsur perjudian dalam permainan.
-        [/INST] Buat penjelasan dengan maksimum sebanyak 3 kalimat ke dalam Bahasa Indonesia dan formatkan sebagai berikut: {format}.
+        [/INST] Buat penjelasan dengan maksimum sebanyak 3 kalimat ke dalam Bahasa Indonesia dan formatkan ke dalam satu json sebagai berikut: {format}. Jangan mengulangi kata-kata yang sama dalam penjelasan.
         Answer:"""
         output_stage = self.send_to_watsonxai(prompts=[prompt_stage], stop_sequences=[])
         output_stage = {"output": str(output_stage.strip()).replace('\n\n', ' ').replace('*', '<li>')}
-        json_str = re.sub(' +', ' ', output_stage["output"])
-        json_dump = json.dumps(json_str).replace('\\n', '') #remove newline characters
-        json_structure = json.loads(json_dump) #convert back to dictionary
+        output_stage["output"] = re.sub(' +', ' ', output_stage["output"])
+        output_stage["output"] = ast.literal_eval(output_stage['output'])
+        # json_str = re.sub(' +', ' ', output_stage["output"])
+        # json_dump = json.dumps(json_str).replace('\\n', '') #remove newline characters
+        # json_structure = json.loads(json_dump) #convert back to dictionary
 
-        return json_structure
+        return output_stage["output"]
     
     ######## get 1 content review play from appid ########
     async def review_play_one(self, app_id, lim_reviews):
@@ -236,7 +238,7 @@ class WatsonQA:
             result = self.gambling_play_category(context)  # await here
             results_list.append({app_id: result})
 
-        return results_list
+        return results_list    
     
     ######## search reverse image ########
     async def reverse_image_search(self, image_url, search_key, num_pages):
